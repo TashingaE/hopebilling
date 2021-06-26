@@ -628,11 +628,15 @@ abstract class ObjectModel
             $query_limit
             ";
 
-            $res = Db::getInstance()->prepare($query);
-            $this->debugQuery = $query;
-            $res->execute($this->_whereValues);
+            try{
+                $res = Db::getInstance()->prepare($query);
+                $this->debugQuery = $query;
+                $res->execute($this->_whereValues);
 
-            $result = ($res->fetchAll(PDO::FETCH_OBJ));
+                $result = ($res->fetchAll(PDO::FETCH_OBJ));
+            }catch (\PDOException $error){
+                // echo $error->getMessage();
+            }
 
             $this->debugInfo['end'] = microtime(true);
 
@@ -660,8 +664,8 @@ abstract class ObjectModel
                     return $result;
 
                 } else return false;
-            } catch (Exception $e) {
-                echo $e->getMessage();
+            } catch (\Exception $e) {
+                // echo $e->getMessage();
             }
         } else {
             return $result;
@@ -1041,7 +1045,7 @@ abstract class ObjectModel
 
 
             } catch (\PDOException $e) {
-                echo $e->getMessage();
+                // echo $e->getMessage();
             }
         }
 

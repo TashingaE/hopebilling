@@ -44,14 +44,14 @@ class Table
 
     public function date($field)
     {
-        $this->fields[$field] = array('type' => 'date', 'nullable' => false, 'default' => "'0000-00-00'");
+        $this->fields[$field] = array('type' => 'date', 'nullable' => false, 'default' => "CURRENT_TIMESTAMP");
 
         return $this;
     }
 
     public function timestamp($field)
     {
-        $this->fields[$field] = array('type' => 'timestamp', 'nullable' => false, 'default' => 'NOW()');
+        $this->fields[$field] = array('type' => 'timestamp', 'nullable' => false, 'default' => 'CURRENT_TIMESTAMP');
 
         return $this;
     }
@@ -92,29 +92,40 @@ class Table
 
     public function create()
     {
-        $table_name = _DB_PREFIX_ . $this->name;
 
-        $query_create = 'CREATE TABLE IF NOT EXISTS ';
 
-        $query_create .= ' `' . $table_name . '` (';
+        try{
 
-        $i = 0;
-        foreach ($this->fields as $field => $params) {
-            $query_create .= '`' . $field . '` ' . self::getFieldType($params) . ' ' . (!$params['nullable'] ? 'NOT NULL' : '') . ' ' . ($params['default'] !== false ? 'DEFAULT ' . $params['default'] : '') . ' ' . ($params['type'] == 'increment' ? 'AUTO_INCREMENT' : '');
-            $query_create .= ', ';
-            if ($i != count($this->fields) - 1) {
+            $table_name = _DB_PREFIX_ . $this->name;
 
-            } else {
-                $query_create .= ' PRIMARY KEY (`id`) ';
+            $query_create = 'CREATE TABLE IF NOT EXISTS ';
+
+            $query_create .= ' `' . $table_name . '` (';
+
+            $i = 0;
+            foreach ($this->fields as $field => $params) {
+                $query_create .= '`' . $field . '` ' . self::getFieldType($params) . ' ' . (!$params['nullable'] ? 'NOT NULL' : '') . ' ' . ($params['default'] !== false ? 'DEFAULT ' . $params['default'] : '') . ' ' . ($params['type'] == 'increment' ? 'AUTO_INCREMENT' : '');
+                $query_create .= ', ';
+                if ($i != count($this->fields) - 1) {
+
+                } else {
+                    $query_create .= ' PRIMARY KEY (`id`) ';
+                }
+
+                $i++;
             }
+            $query_create .= ') CHARACTER SET utf8mb4;';
 
-            $i++;
+            //   echo $query_create; die();
+
+            return Db::getInstance()->prepare($query_create)->execute();
+
+        }catch (\PDOException $error){
+            // $error->sql = $query_create;
+            // header("Content-Type: Application/json");
+            // print json_encode($error);
+            // die();
         }
-        $query_create .= ') CHARACTER SET utf8 COLLATE utf8_general_ci;';
-
-        //   echo $query_create;
-
-        return Db::getInstance()->prepare($query_create)->execute();
 
         // echo '<pre>', $query_create, '</pre>';
 
@@ -134,7 +145,7 @@ class Table
         switch ($field_params['type']) {
             case 'int' :
                 if ($field_params['length']) {
-                    return 'INT(' . $field_params['length'] . ')';
+                    return 'INT';
                 }
                 break;
             case 'float' :
@@ -143,7 +154,7 @@ class Table
                 }
                 break;
             case 'increment':
-                return 'INT(10)';
+                return 'INT';
                 break;
             case 'text':
                 return 'TEXT';
@@ -154,7 +165,7 @@ class Table
                 }
                 break;
             case 'date' :
-                return 'DATE';
+                return 'DATETIME';
 
                 break;
             case 'bool':
@@ -166,4 +177,4 @@ class Table
     }
 
 
-} 
+}
